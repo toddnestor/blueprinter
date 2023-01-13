@@ -394,19 +394,20 @@ describe '::Base' do
         end
       end
 
-      context 'Given a collection of objects' do
+      context 'Given a non-activerecord-relation collection of objects' do
         let(:blueprint) do
           Class.new(Blueprinter::Base) do
             identifier :id
             fields :make
           end
         end
-        let(:obj) { Vehicle.all }
         let(:vehicle1) { create(:vehicle) }
         let(:vehicle2) { create(:vehicle, make: 'Mediocre Car') }
         let(:vehicle3) { create(:vehicle, make: 'Terrible Car') }
+        let(:vehicles) { [vehicle1, vehicle2, vehicle3] }
+        let(:obj) { Set.new(vehicles) }
         let(:result) do
-          vehicles_json = [vehicle1, vehicle2, vehicle3].map do |vehicle|
+          vehicles_json = vehicles.map do |vehicle|
             "{\"id\":#{vehicle.id},\"make\":\"#{vehicle.make}\"}"
           end.join(',')
           "[#{vehicles_json}]"
