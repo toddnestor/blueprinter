@@ -56,6 +56,16 @@ describe '::Base' do
 
         include_examples 'Base::render'
       end
+
+      context 'Given passed object is enumerable but not an array' do
+        let(:blueprint) { blueprint_with_block }
+        let(:additional_object) { OpenStruct.new(obj_hash.merge(id: 2)) }
+        let(:obj) { Set.new([object_with_attributes, additional_object]) }
+
+        it 'should return the expected array of hashes' do
+          should eq('[{"id":1,"position_and_company":"Manager at Procore"},{"id":2,"position_and_company":"Manager at Procore"}]')
+        end
+      end
     end
 
     context 'Inside Rails project' do
@@ -382,6 +392,30 @@ describe '::Base' do
             end
           end
         end
+      end
+
+      context 'Given a collection of objects' do
+        let(:blueprint) do
+          Class.new(Blueprinter::Base) do
+            identifier :id
+            fields :make
+          end
+        end
+        let(:obj) { Vehicle.all }
+        let(:vehicle1) { create(:vehicle) }
+        let(:vehicle2) { create(:vehicle, make: 'Mediocre Car') }
+        let(:vehicle3) { create(:vehicle, make: 'Terrible Car') }
+        let(:result) do
+          vehicles_json = [vehicle1, vehicle2, vehicle3].map do |vehicle|
+            "{\"id\":#{vehicle.id},\"make\":\"#{vehicle.make}\"}"
+          end.join(',')
+          "[#{vehicles_json}]"
+        end
+
+        before { Vehicle.destroy_all }
+        after { Vehicle.destroy_all }
+
+        it('returns the expected result') { should eq(result) }
       end
     end
   end
