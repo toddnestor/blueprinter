@@ -3,6 +3,7 @@
 require 'activerecord_helper'
 require 'ostruct'
 require_relative 'shared/base_render_examples'
+require 'mongoid'
 
 describe '::Base' do
   let(:blueprint_with_block) do
@@ -382,6 +383,35 @@ describe '::Base' do
             end
           end
         end
+      end
+
+      context 'Given a mongoid relation collection of objects' do
+        let(:blueprint) do
+          Class.new(Blueprinter::Base) do
+            identifier :id
+            fields :make
+          end
+        end
+        let(:vehicle1) { create(:vehicle) }
+        let(:vehicle2) { create(:vehicle, make: 'Mediocre Car') }
+        let(:vehicle3) { create(:vehicle, make: 'Terrible Car') }
+        let(:vehicles) { [vehicle1, vehicle2, vehicle3] }
+        let(:obj) { Mongoid::Criteria.new(nil) }
+        let(:result) do
+          vehicles_json = vehicles.map do |vehicle|
+            "{\"id\":#{vehicle.id},\"make\":\"#{vehicle.make}\"}"
+          end.join(',')
+          "[#{vehicles_json}]"
+        end
+
+        before do
+          Vehicle.destroy_all
+          # stubbing out the Mongoid::Criteria so that we don't have to have mongo actually set up to run tests
+          allow_any_instance_of(Mongoid::Criteria).to receive(:map) { |&block| vehicles.map { |vehicle| block.call(vehicle) } }
+        end
+        after { Vehicle.destroy_all }
+
+        it('returns the expected result') { should eq(result) }
       end
     end
   end

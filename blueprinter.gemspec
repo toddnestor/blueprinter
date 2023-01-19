@@ -30,4 +30,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "sqlite3", "~> 1.5"
   s.add_development_dependency "yard", "~> 0.9"
   s.add_development_dependency "ammeter", "~> 1.1"
+  s.add_development_dependency "mongoid", "~> 7.0"
 end
